@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>案件ノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body,*{color-scheme:light!important}
+@media(prefers-color-scheme:dark){html{background:#F6F5F1!important;color:#1A1916!important}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F6F5F1;--surface:#FFFFFF;--surface-2:#F0EDE7;--border:#E2DDD5;
+  --accent:#2B4A3A;--accent-mid:#3D6B55;--accent-light:#E8F2EC;--accent-glow:rgba(43,74,58,0.12);
+  --text:#1A1916;--text-2:#5C574F;--text-3:#9C9488;
+  --gold:#C9A84C;--danger:#9B3A2F;--danger-light:#FDF0EE;
+  --warn:#9A6820;--warn-light:#FBF0DC;
+  --tag-bg:#EAE6DE;
+  --shadow:0 1px 4px rgba(26,25,22,0.07);
+  --shadow-lg:0 12px 48px rgba(26,25,22,0.13),0 4px 12px rgba(26,25,22,0.07);
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Playfair Display','Georgia',serif;
+  --font-mono:'JetBrains Mono','Courier New',monospace;
+  --font-body:'Noto Sans JP',-apple-system,'Hiragino Sans',sans-serif;
+  --bg-card:#FFFFFF;--bg-card2:#F0EDE7;
+  --accent2:#4A7A96;--accent2-light:#E6F0F6;
+  --text-sub:#5C574F;--text-muted:#9C9488;
+}
+html{color-scheme:light only}
+html{color-scheme:light!important;-webkit-color-scheme:light!important}
+html,body{height:100%;background:var(--bg)!important;font-family:var(--font-body);color:var(--text)!important;font-size:15px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+/* ─── ヘッダー（Trip Memo準拠） ─── */
+#header{flex-shrink:0;z-index:10}
+.header{background:var(--accent);padding:0 18px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent 55%)}
+.header-left{display:flex;align-items:baseline;gap:8px}
+.header-title{font-family:var(--font-display);font-weight:700;font-size:20px;color:#fff;letter-spacing:0.06em}
+.header-sub{font-size:10px;color:rgba(255,255,255,0.45);font-family:var(--font-mono);letter-spacing:0.14em}
+.header-right{display:flex;align-items:center;gap:6px}
+.icon-btn{background:rgba(255,255,255,0.12);border:none;color:rgba(255,255,255,0.8);width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.icon-btn:active{transform:scale(.92)}
+
+/* タブ */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface)!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:12px 16px;font-size:12.5px;font-weight:400;color:var(--text-3)!important;background:none;border:none;cursor:pointer;position:relative;transition:.15s;letter-spacing:.05em;font-family:var(--font-body);white-space:nowrap}
+.tab.active{color:var(--accent);font-weight:700}
+.tab.active::after{content:'';position:absolute;bottom:0;left:8px;right:8px;height:2px;background:var(--accent);border-radius:2px}
+
+/* 検索・フィルター */
+.search-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface)!important;border-bottom:1px solid var(--border);flex-shrink:0}
+.search-wrap{flex:1;position:relative;display:flex;align-items:center;background:var(--surface-2)!important;border:1.5px solid var(--border);border-radius:10px;padding:0 12px;gap:8px;transition:border-color .2s,box-shadow .2s}
+.search-wrap:focus-within{border-color:var(--accent-mid);box-shadow:0 0 0 3px var(--accent-glow);background:var(--surface)!important}
+.search-wrap input{flex:1;min-width:0;height:38px;border:none;background:transparent;font-size:16px;color:var(--text)!important;outline:none;font-family:var(--font-body)}
+.search-wrap input::placeholder{color:var(--text-3)!important}
+.search-icon{color:var(--text-3)!important;font-size:15px;pointer-events:none;flex-shrink:0}
+.filter-btn{flex-shrink:0;background:var(--surface-2)!important;border:1.5px solid var(--border);border-radius:10px;width:38px;height:38px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2)!important;transition:.15s}
+.filter-btn.active{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent)}
+
+/* ─── スクロールリスト ─── */
+#main{flex:1;overflow-y:auto;padding:12px 16px;padding-bottom:90px;background:var(--bg)!important}
+.empty-state{text-align:center;padding:64px 24px;color:var(--text-3)!important}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ─── カード ─── */
+.card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius);overflow:hidden}
+.card-bg{position:absolute;inset:0;background:var(--danger);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff;font-size:13px;font-weight:600;opacity:0}
+.card{background:var(--surface)!important;border-radius:var(--radius);border:1px solid var(--border);padding:14px;position:relative;cursor:pointer;transition:transform .18s,box-shadow .18s;will-change:transform}
+.card:active{box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.priority-mark{flex-shrink:0;width:8px;height:8px;border-radius:50%;margin-top:5px}
+.priority-high{background:#E05050}
+.priority-mid{background:#E09020}
+.priority-low{background:#70B090}
+.card-title{font-size:15px;font-weight:700;flex:1;line-height:1.35;font-family:var(--font-display);color:var(--text)!important}
+.status-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px}
+.st-candidate{background:#EDF2FB;color:#3D5A9E}
+.st-contact{background:#FDF3E3;color:#8B6020}
+.st-proposal{background:#E8F5FF;color:#1A6FA8}
+.st-negotiation{background:#F0EAF8;color:#6A3CA0}
+.st-won{background:var(--accent-light);color:var(--accent-mid)}
+.st-lost{background:#F5F0EF;color:#8A6A65}
+.st-hold{background:var(--tag-bg);color:var(--text-sub)!important}
+
+.card-body{font-size:13px;color:var(--text-2)!important;line-height:1.5;margin-bottom:8px}
+.card-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:11px;background:var(--surface-2)!important;color:var(--text-2)!important;border:1px solid var(--border);padding:2px 8px;border-radius:20px;font-family:var(--font-mono);font-size:10.5px}
+.tag.source{background:var(--accent2-light);color:var(--accent2)}
+.card-amount{font-size:13px;font-weight:700;color:var(--accent);margin-left:auto;font-family:var(--font-mono)}
+.card-date{font-size:11px;color:var(--text-muted)!important}
+.next-action{display:flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;background:var(--warn-light);border-radius:var(--radius-sm);font-size:12px;color:var(--warn);font-weight:600}
+
+/* ─── FAB ─── */
+.fab{position:fixed;bottom:24px;right:20px;width:54px;height:54px;border-radius:50%;background:var(--gold);color:#fff;font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;transition:.18s;z-index:50}
+.fab:active{transform:scale(.92)}
+
+/* ─── ダッシュボード ─── */
+#dash{flex:1;overflow-y:auto;padding:16px;padding-bottom:90px;display:none;background:var(--bg)!important}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi{background:var(--surface)!important;border-radius:var(--radius);border:1px solid var(--border);padding:14px}
+.kpi-label{font-size:10px;color:var(--text-3)!important;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;font-family:var(--font-mono)}
+.kpi-val{font-size:28px;font-weight:700;line-height:1.1;font-family:var(--font-mono)}
+.kpi-val.accent{color:var(--accent)}
+.kpi-sub{font-size:12px;color:var(--text-2)!important;margin-top:2px}
+.chart-card{background:var(--surface)!important;border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:10px}
+.chart-title{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)!important;font-family:var(--font-display)}
+canvas{width:100%!important}
+
+/* ─── スライドアップシート ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4)!important;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF!important;border-radius:24px 24px 0 0;z-index:101;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.28,1)}
+.sheet.show{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+
+/* ─── 設定シート（Trip Memo準拠） ─── */
+.sh-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.sh-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text)!important}
+.sh-close{background:var(--surface-2)!important;border:none;color:var(--text-2)!important;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-family:var(--font-mono)}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:16px;color:var(--text)!important;background:var(--surface-2)!important;font-family:var(--font-body);outline:none;-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:var(--accent-mid);background:var(--surface)!important;box-shadow:0 0 0 3px var(--accent-glow)}
+.btn-row{margin-bottom:4px}
+.btn-exp{width:100%;height:46px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font-body)}
+.btn-exp:disabled{opacity:.6}
+.btn-sub{width:100%;height:46px;background:var(--surface-2)!important;color:var(--text-2)!important;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+.btn-save{width:100%;height:46px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font-body);margin-top:4px}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+.sheet-title{font-size:18px;font-weight:700;font-family:var(--font-display)}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--bg-card2)!important;border:none;font-size:18px;color:var(--text-muted)!important;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sheet-body{padding:0 18px 40px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;display:block;font-family:var(--font-mono)}
+.form-input,.form-select,.form-textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:16px;color:var(--text)!important;background:var(--surface-2)!important;font-family:var(--font-body);outline:none;transition:.15s;-webkit-appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent-mid)}
+.form-textarea{min-height:90px;resize:vertical;line-height:1.5}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:100%;height:48px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:.15s;margin-top:8px}
+.btn-primary:active{opacity:.85}
+.btn-danger{background:var(--danger)}
+
+/* ─── 詳細シート ─── */
+.detail-section{padding:0 20px;margin-bottom:20px}
+.detail-section-title{font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);font-family:var(--font-mono)}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;font-size:14px;border-bottom:1px solid var(--bg-card2)}
+.detail-row:last-child{border-bottom:none}
+.detail-row .label{color:var(--text-muted)!important;flex-shrink:0;margin-right:12px}
+.detail-row .val{text-align:right;font-weight:500;word-break:break-all}
+.history-item{padding:10px 0;border-bottom:1px solid var(--bg-card2);font-size:14px}
+.history-item:last-child{border-bottom:none}
+.history-date{font-size:11px;color:var(--text-muted)!important;margin-bottom:3px}
+.history-text{line-height:1.5}
+.task-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg-card2);font-size:14px}
+.task-item:last-child{border-bottom:none}
+.task-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.task-check.done{background:var(--accent);border-color:var(--accent);color:#fff;font-size:12px}
+.task-done-text{text-decoration:line-through;color:var(--text-muted)!important}
+.detail-actions{display:flex;gap:10px;padding:0 20px;margin-bottom:16px}
+.detail-actions button{flex:1;height:44px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--bg-card2)!important;color:var(--text-sub)!important;transition:.15s}
+.detail-actions .edit-btn{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.detail-actions .del-btn{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+
+/* ─── トースト ─── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;font-weight:600;z-index:200;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:10px}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast-undo{background:none;border:none;color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;padding:0}
+
+/* ─── フィルターシート ─── */
+.filter-options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+/* ─── ナレッジビュー ─── */
+#knowledge-view{flex:1;overflow-y:auto;padding:0;padding-bottom:90px;background:var(--bg)!important;display:none}
+.kn-search-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface)!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.kn-search-wrap{flex:1;position:relative;display:flex;align-items:center;background:var(--surface-2)!important;border:1.5px solid var(--border);border-radius:10px;padding:0 12px;gap:8px;transition:border-color .2s}
+.kn-search-wrap:focus-within{border-color:var(--accent-mid);background:var(--surface)!important}
+.kn-search-wrap input{flex:1;height:36px;border:none;background:transparent;font-size:16px;color:var(--text)!important;outline:none;font-family:var(--font-body)}
+.kn-search-icon{color:var(--text-3)!important;font-size:14px;flex-shrink:0}
+.kn-cat-scroll{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:var(--surface)!important;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.kn-cat-scroll::-webkit-scrollbar{display:none}
+.kn-cat-btn{flex-shrink:0;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface-2)!important;font-size:12px;font-weight:600;color:var(--text-2)!important;cursor:pointer;font-family:var(--font-body);transition:.15s;white-space:nowrap}
+.kn-cat-btn.active{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent)}
+.kn-list{padding:10px 14px}
+.kn-card{background:var(--surface)!important;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.kn-card:active{opacity:.85}
+.kn-card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.kn-cat-badge{flex-shrink:0;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;font-family:var(--font-mono);letter-spacing:.03em}
+.kn-cat-sales{background:#EDF2FB;color:#3D5A9E}
+.kn-cat-tech{background:var(--accent-light);color:var(--accent-mid)}
+.kn-cat-trouble{background:var(--danger-light);color:var(--danger)}
+.kn-cat-other{background:var(--tag-bg);color:var(--text-2)!important}
+.kn-card-title{font-size:15px;font-weight:700;font-family:var(--font-display);color:var(--text)!important;flex:1;line-height:1.3}
+.kn-card-body{font-size:13px;color:var(--text-2)!important;line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kn-card-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.kn-tag{font-size:11px;background:var(--surface-2)!important;border:1px solid var(--border);color:var(--text-2)!important;padding:2px 8px;border-radius:20px;font-family:var(--font-mono)}
+.kn-tag.highlight{background:var(--warn-light);border-color:var(--warn);color:var(--warn)}
+.kn-date{font-size:11px;color:var(--text-3)!important;font-family:var(--font-mono);margin-left:auto}
+.kn-project-link{font-size:11px;color:var(--accent-mid);font-family:var(--font-mono);margin-top:4px}
+.kn-empty{text-align:center;padding:64px 24px;color:var(--text-3)!important}
+.kn-empty .icon{font-size:48px;margin-bottom:12px}
+.kn-fab{position:fixed;bottom:24px;right:20px;width:54px;height:54px;border-radius:50%;background:var(--gold);color:#fff;font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(201,168,76,.35);display:none;align-items:center;justify-content:center;transition:.18s;z-index:50}
+.kn-fab:active{transform:scale(.92)}
+
+/* ナレッジ詳細シート */
+.kn-detail-body{font-size:15px;color:var(--text)!important;line-height:1.8;white-space:pre-wrap;padding:0 20px 12px}
+.kn-detail-tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 16px}
+.kn-detail-actions{display:flex;gap:10px;padding:0 20px 16px}
+.kn-detail-actions button{flex:1;height:44px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);border:1.5px solid var(--border);background:var(--surface-2)!important;color:var(--text-2)!important}
+.kn-detail-actions .edit-btn{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.kn-detail-actions .del-btn{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+
+/* ─── KPI・目標ビュー ─── */
+#kpi-view{flex:1;overflow-y:auto;padding:12px 16px;padding-bottom:90px;background:var(--bg)!important;display:none}
+.kpi-section{margin-bottom:20px}
+.kpi-section-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text)!important;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--accent-mid);display:flex;align-items:center;gap:8px}
+.kpi-goal-card{background:var(--surface)!important;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+.kpi-goal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.kpi-goal-year{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text-3)!important;letter-spacing:.1em}
+.kpi-goal-edit-btn{font-size:12px;background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;border-radius:8px;font-weight:700;cursor:pointer;font-family:var(--font-body)}
+.kpi-goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-goal-item{background:var(--surface-2)!important;border-radius:10px;padding:10px 12px}
+.kpi-goal-label{font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.08em;font-family:var(--font-mono);margin-bottom:4px}
+.kpi-goal-val{font-size:22px;font-weight:700;font-family:var(--font-mono);color:var(--text)!important}
+.kpi-goal-unit{font-size:12px;color:var(--text-3)!important;font-family:var(--font-mono);margin-left:2px}
+
+.kpi-month-row{background:var(--surface)!important;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px}
+.kpi-month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kpi-month-label{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text)!important}
+.kpi-month-dm{display:flex;align-items:center;gap:8px}
+.kpi-month-dm-label{font-size:11px;color:var(--text-3)!important;font-family:var(--font-mono)}
+.kpi-dm-input{width:60px;height:30px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface-2)!important;text-align:center;font-size:14px;font-weight:700;font-family:var(--font-mono);color:var(--text)!important;outline:none;-webkit-appearance:none}
+.kpi-dm-input:focus{border-color:var(--accent-mid);background:var(--surface)!important}
+.kpi-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kpi-metric{background:var(--surface-2)!important;border-radius:8px;padding:8px 6px;text-align:center}
+.kpi-metric-label{font-size:9px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font-mono);margin-bottom:3px}
+.kpi-metric-val{font-size:16px;font-weight:700;font-family:var(--font-mono);line-height:1.1}
+.kpi-metric-rate{font-size:10px;color:var(--text-3)!important;font-family:var(--font-mono);margin-top:1px}
+.kpi-bar-wrap{margin-top:8px;height:4px;background:var(--surface-2)!important;border-radius:2px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.kpi-bar-ahead{background:var(--accent-mid)}
+.kpi-bar-behind{background:var(--warn)}
+.kpi-bar-achieved{background:var(--gold)}
+.kpi-pace-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;font-family:var(--font-mono);padding:2px 7px;border-radius:20px}
+.kpi-pace-ahead{background:var(--accent-light);color:var(--accent-mid)}
+.kpi-pace-behind{background:var(--warn-light);color:var(--warn)}
+.kpi-pace-on{background:var(--tag-bg);color:var(--text-2)!important}
+.kpi-annual-summary{background:var(--surface)!important;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+.kpi-summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.kpi-summary-item{padding:10px 12px;background:var(--surface-2)!important;border-radius:10px}
+.kpi-summary-label{font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.08em;font-family:var(--font-mono);margin-bottom:4px}
+.kpi-summary-row{display:flex;align-items:baseline;gap:6px}
+.kpi-summary-actual{font-size:20px;font-weight:700;font-family:var(--font-mono);color:var(--text)!important}
+.kpi-summary-target{font-size:12px;color:var(--text-3)!important;font-family:var(--font-mono)}
+.kpi-summary-pct{font-size:12px;font-weight:700;font-family:var(--font-mono)}
+.kpi-pct-good{color:var(--accent-mid)}
+.kpi-pct-warn{color:var(--warn)}
+
+/* ─── ポートフォリオビュー ─── */
+#portfolio-view{flex:1;overflow-y:auto;padding:12px 16px;padding-bottom:90px;background:var(--bg)!important;display:none}
+.portfolio-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.portfolio-header-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text)!important}
+.portfolio-count{font-size:12px;color:var(--text-3)!important;font-family:var(--font-mono)}
+.work-card{background:var(--surface)!important;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.work-card:active{opacity:.85}
+.work-card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.work-card-title{font-size:15px;font-weight:700;font-family:var(--font-display);flex:1;line-height:1.3;color:var(--text)!important}
+.work-status-badge{flex-shrink:0;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px;font-family:var(--font-mono)}
+.ws-demo{background:var(--warn-light);color:var(--warn)}
+.ws-active{background:var(--accent-light);color:var(--accent-mid)}
+.ws-revision{background:var(--accent2-light);color:var(--accent2)}
+.ws-archived{background:var(--tag-bg);color:var(--text-3)!important}
+.work-card-company{font-size:13px;color:var(--text-2)!important;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.work-card-url{font-size:11px;color:var(--accent-mid);font-family:var(--font-mono);word-break:break-all;margin-bottom:6px}
+.work-card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.work-card-date{font-size:11px;color:var(--text-3)!important;font-family:var(--font-mono)}
+.work-card-memo{font-size:12px;color:var(--text-2)!important;margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.work-open-btn{display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);text-decoration:none;transition:.15s}
+.work-open-btn:active{opacity:.8}
+.portfolio-empty{text-align:center;padding:64px 24px;color:var(--text-3)!important}
+.portfolio-empty .icon{font-size:48px;margin-bottom:12px}
+
+.filter-option{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface-2)!important;font-size:12.5px;font-weight:400;color:var(--text-2)!important;cursor:pointer;transition:.15s}
+.filter-option.sel{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent)}
+.section-sep{font-size:10px;font-weight:700;color:var(--text-3)!important;text-transform:uppercase;letter-spacing:.1em;margin:14px 0 8px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-title">Project Memo</div>
+      <div class="header-sub">NOTEBOOK</div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" id="settings-btn" title="設定・バックアップ">⚙</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="list">案件一覧</button>
+    <button class="tab" data-tab="dash">ダッシュボード</button>
+    <button class="tab" data-tab="portfolio">制作物</button>
+    <button class="tab" data-tab="kpi">目標・KPI</button>
+    <button class="tab" data-tab="knowledge">ナレッジ</button>
+  </div>
+</div>
+
+<div class="search-bar" id="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="search-input" placeholder="会社名・担当者・メモで検索…" autocomplete="off">
+  </div>
+  <button class="filter-btn" id="filter-toggle">⊟</button>
+</div>
+
+<div id="main"></div>
+<div id="dash"></div>
+<div id="portfolio-view"></div>
+<div id="kpi-view"></div>
+<div id="knowledge-view"></div>
+
+<button class="fab" id="fab">＋</button>
+<input type="file" id="importFile" accept=".json" style="display:none">
+
+<!-- オーバーレイ -->
+<div class="overlay" id="overlay"></div>
+
+<!-- フィルターシート -->
+<div class="sheet" id="filter-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">絞り込み</span>
+    <button class="sheet-close" id="filter-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="section-sep">ステータス</div>
+    <div class="filter-options" id="filter-status"></div>
+    <div class="section-sep">優先度</div>
+    <div class="filter-options" id="filter-priority"></div>
+    <div class="section-sep">案件ソース</div>
+    <div class="filter-options" id="filter-source-list"></div>
+    <button class="btn-primary" id="filter-clear" style="background:var(--bg-card2);color:var(--text-sub);border:1.5px solid var(--border);margin-top:8px">フィルターをリセット</button>
+  </div>
+</div>
+
+<!-- 追加・編集シート -->
+<div class="sheet" id="form-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="form-title">新規案件</span>
+    <button class="sheet-close" id="form-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">会社名 *</label>
+      <input class="form-input" id="f-company" placeholder="株式会社〇〇" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">担当者名</label>
+      <input class="form-input" id="f-contact" placeholder="山田 太郎" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">連絡先（電話・メール等）</label>
+      <input class="form-input" id="f-contact-info" placeholder="090-0000-0000 / xxx@example.com" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ステータス</label>
+        <select class="form-select" id="f-status">
+          <option value="candidate">候補</option>
+          <option value="contact">打診中</option>
+          <option value="proposal">提案中</option>
+          <option value="negotiation">折衝中</option>
+          <option value="won">受注</option>
+          <option value="lost">失注</option>
+          <option value="hold">保留</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">優先度</label>
+        <select class="form-select" id="f-priority">
+          <option value="high">🔴 高</option>
+          <option value="mid">🟡 中</option>
+          <option value="low">🟢 低</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">想定単価（万円）</label>
+        <input class="form-input" id="f-amount" type="number" placeholder="30" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">案件ソース</label>
+        <input class="form-input" id="f-source" placeholder="紹介・SNS・知人…" autocomplete="off">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">次回アクション日</label>
+      <input class="form-input" id="f-next-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="f-memo" placeholder="業種・規模・要望など…"></textarea>
+    </div>
+    <button class="btn-primary" id="form-save">保存する</button>
+  </div>
+</div>
+
+<!-- 詳細シート -->
+<div class="sheet" id="detail-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="detail-company"></span>
+    <button class="sheet-close" id="detail-close">✕</button>
+  </div>
+  <div id="detail-body"></div>
+</div>
+
+<!-- 制作物登録シート -->
+<div class="sheet" id="work-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="work-sheet-title">制作物を登録</span>
+    <button class="sheet-close" id="work-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">GitHub Pages URL *</label>
+      <input class="form-input" id="w-url" type="url" placeholder="https://username.github.io/repo-name" autocomplete="off" inputmode="url">
+    </div>
+    <div class="form-group">
+      <label class="form-label">制作物タイトル *</label>
+      <input class="form-input" id="w-title" placeholder="○○工業 コーポレートサイト" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ステータス</label>
+        <select class="form-select" id="w-status">
+          <option value="demo">デモ</option>
+          <option value="active">正式稼働</option>
+          <option value="revision">改修中</option>
+          <option value="archived">アーカイブ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">制作日</label>
+        <input class="form-input" id="w-date" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">使用技術・メモ</label>
+      <textarea class="form-textarea" id="w-memo" placeholder="HTML/CSS/JS・レスポンシブ対応・お問い合わせフォームなど"></textarea>
+    </div>
+    <button class="btn-primary" id="work-save">登録する</button>
+  </div>
+</div>
+
+<!-- KPI目標設定シート -->
+<div class="sheet" id="kpi-goal-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">年度目標を設定</span>
+    <button class="sheet-close" id="kpi-goal-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">対象年度</label>
+      <select class="form-select" id="kg-year"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">年間DM目標数</label>
+        <input class="form-input" id="kg-dm" type="number" placeholder="240" min="0" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label class="form-label">返信率目標（%）</label>
+        <input class="form-input" id="kg-reply" type="number" placeholder="30" min="0" max="100" inputmode="numeric">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">商談率目標（%）</label>
+        <input class="form-input" id="kg-meeting" type="number" placeholder="15" min="0" max="100" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label class="form-label">成約CV率目標（%）</label>
+        <input class="form-input" id="kg-cv" type="number" placeholder="5" min="0" max="100" inputmode="numeric">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">年間売上目標（万円）</label>
+      <input class="form-input" id="kg-revenue" type="number" placeholder="500" min="0" inputmode="numeric">
+    </div>
+    <button class="btn-primary" id="kg-save">保存する</button>
+  </div>
+</div>
+
+<!-- ナレッジ登録・編集シート -->
+<div class="sheet" id="knowledge-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="kn-sheet-title">ナレッジを追加</span>
+    <button class="sheet-close" id="kn-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">タイトル *</label>
+      <input class="form-input" id="kn-title" placeholder="初回電話での断り文句への対応" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">カテゴリ</label>
+        <select class="form-select" id="kn-category">
+          <option value="sales">営業</option>
+          <option value="tech">技術</option>
+          <option value="trouble">トラブル</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">記録日</label>
+        <input class="form-input" id="kn-date" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容・学び</label>
+      <textarea class="form-textarea" id="kn-body" placeholder="状況・問題・対処法・気づきなどを記録…" style="min-height:120px"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">タグ（スペース区切り）</label>
+      <input class="form-input" id="kn-tags" placeholder="WordPress 見積もり 断り文句" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">関連案件（任意）</label>
+      <select class="form-select" id="kn-project" style="-webkit-appearance:auto">
+        <option value="">― 紐付けなし ―</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="kn-save">保存する</button>
+  </div>
+</div>
+
+<!-- ナレッジ詳細シート -->
+<div class="sheet" id="kn-detail-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="kn-detail-title"></span>
+    <button class="sheet-close" id="kn-detail-close">✕</button>
+  </div>
+  <div id="kn-detail-body"></div>
+</div>
+
+<!-- 設定シート -->
+<div class="sheet" id="settings-sheet">
+  <div class="sheet-handle"></div>
+  <div id="settings-content"></div>
+</div>
+
+<!-- 履歴追加シート -->
+<div class="sheet" id="history-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">折衝・アクション履歴を追加</span>
+    <button class="sheet-close" id="history-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">日付</label>
+      <input class="form-input" id="h-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容</label>
+      <textarea class="form-textarea" id="h-text" placeholder="電話で初回打診。先方は興味あり。来週提案書送付予定。"></textarea>
+    </div>
+    <button class="btn-primary" id="history-save">追加する</button>
+  </div>
+</div>
+
+<!-- タスク追加シート -->
+<div class="sheet" id="task-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">タスクを追加</span>
+    <button class="sheet-close" id="task-close">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">期限日</label>
+      <input class="form-input" id="t-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">タスク内容</label>
+      <input class="form-input" id="t-text" placeholder="提案書を送付する" autocomplete="off">
+    </div>
+    <button class="btn-primary" id="task-save">追加する</button>
+  </div>
+</div>
+
+<div id="toast"><span id="toast-msg"></span><button id="toast-undo" style="display:none">元に戻す</button></div>
+
+<script>
+(function(){
+'use strict';
+
+// ─── データ ───────────────────────────────────
+const STORE = 'anken_v1';
+let projects = [];
+let undoData = null, undoTimer = null;
+
+// フィルター状態
+let filters = { status: [], priority: [], source: [] };
+let searchQ = '';
+
+function load(){
+  try{ projects = JSON.parse(localStorage.getItem(STORE)||'[]'); }catch(e){ projects=[]; }
+}
+function save(){
+  localStorage.setItem(STORE, JSON.stringify(projects));
+}
+load();
+
+// ─── 定数 ────────────────────────────────────
+const STATUS_MAP = {
+  candidate:{label:'候補',cls:'st-candidate'},
+  contact:{label:'打診中',cls:'st-contact'},
+  proposal:{label:'提案中',cls:'st-proposal'},
+  negotiation:{label:'折衝中',cls:'st-negotiation'},
+  won:{label:'受注',cls:'st-won'},
+  lost:{label:'失注',cls:'st-lost'},
+  hold:{label:'保留',cls:'st-hold'},
+};
+const PRIORITY_MAP = {
+  high:{label:'高',mark:'priority-high'},
+  mid:{label:'中',mark:'priority-mid'},
+  low:{label:'低',mark:'priority-low'},
+};
+
+// ─── タブ ─────────────────────────────────────
+let activeTab = 'list';
+const tabEls = document.querySelectorAll('.tab');
+const mainEl = document.getElementById('main');
+const dashEl = document.getElementById('dash');
+const searchBarEl = document.getElementById('search-bar');
+const fabEl = document.getElementById('fab');
+
+const portfolioEl = document.getElementById('portfolio-view');
+const kpiEl = document.getElementById('kpi-view');
+const knowledgeEl = document.getElementById('knowledge-view');
+
+tabEls.forEach(t => t.addEventListener('click', () => {
+  activeTab = t.dataset.tab;
+  tabEls.forEach(x => x.classList.toggle('active', x === t));
+    const views = {list:mainEl, dash:dashEl, portfolio:portfolioEl, kpi:kpiEl, knowledge:knowledgeEl};
+  Object.entries(views).forEach(([k,v]) => { v.style.display = k===activeTab ? '' : 'none'; });
+  searchBarEl.style.display = activeTab === 'list' ? '' : 'none';
+  fabEl.style.display = activeTab === 'list' ? '' : 'none';
+  if(activeTab === 'dash') renderDash();
+  if(activeTab === 'portfolio') renderPortfolio();
+  if(activeTab === 'knowledge') renderKnowledge();
+}));
+
+// ─── 検索・フィルター ────────────────────────
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQ = e.target.value.toLowerCase();
+  renderList();
+});
+
+function matchProject(p){
+  const q = searchQ;
+  if(q && !( (p.company||'').toLowerCase().includes(q) ||
+             (p.contact||'').toLowerCase().includes(q) ||
+             (p.contactInfo||'').toLowerCase().includes(q) ||
+             (p.memo||'').toLowerCase().includes(q) ||
+             (p.source||'').toLowerCase().includes(q) )) return false;
+  if(filters.status.length && !filters.status.includes(p.status)) return false;
+  if(filters.priority.length && !filters.priority.includes(p.priority)) return false;
+  if(filters.source.length && !filters.source.includes(p.source||'')) return false;
+  return true;
+}
+
+// フィルターシート
+const filterSheetEl = document.getElementById('filter-sheet');
+document.getElementById('filter-toggle').addEventListener('click', openFilterSheet);
+document.getElementById('filter-close').addEventListener('click', closeSheet);
+document.getElementById('filter-clear').addEventListener('click', () => {
+  filters = {status:[],priority:[],source:[]};
+  buildFilterOptions();
+  renderList();
+  document.getElementById('filter-toggle').classList.remove('active');
+});
+
+function openFilterSheet(){
+  buildFilterOptions();
+  openSheet(filterSheetEl);
+}
+function buildFilterOptions(){
+  // ステータス
+  const stEl = document.getElementById('filter-status');
+  stEl.innerHTML = '';
+  Object.entries(STATUS_MAP).forEach(([k,v]) => {
+    const b = document.createElement('button');
+    b.className = 'filter-option' + (filters.status.includes(k) ? ' sel' : '');
+    b.textContent = v.label;
+    b.addEventListener('click', () => {
+      filters.status = toggle(filters.status, k);
+      b.classList.toggle('sel', filters.status.includes(k));
+      renderList(); updateFilterBtn();
+    });
+    stEl.appendChild(b);
+  });
+  // 優先度
+  const prEl = document.getElementById('filter-priority');
+  prEl.innerHTML = '';
+  Object.entries(PRIORITY_MAP).forEach(([k,v]) => {
+    const b = document.createElement('button');
+    b.className = 'filter-option' + (filters.priority.includes(k) ? ' sel' : '');
+    b.textContent = v.label;
+    b.addEventListener('click', () => {
+      filters.priority = toggle(filters.priority, k);
+      b.classList.toggle('sel', filters.priority.includes(k));
+      renderList(); updateFilterBtn();
+    });
+    prEl.appendChild(b);
+  });
+  // ソース
+  const srcEl = document.getElementById('filter-source-list');
+  srcEl.innerHTML = '';
+  const sources = [...new Set(projects.map(p => p.source).filter(Boolean))];
+  sources.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'filter-option' + (filters.source.includes(s) ? ' sel' : '');
+    b.textContent = s;
+    b.addEventListener('click', () => {
+      filters.source = toggle(filters.source, s);
+      b.classList.toggle('sel', filters.source.includes(s));
+      renderList(); updateFilterBtn();
+    });
+    srcEl.appendChild(b);
+  });
+}
+function toggle(arr, v){ return arr.includes(v) ? arr.filter(x=>x!==v) : [...arr,v]; }
+function updateFilterBtn(){
+  const active = filters.status.length + filters.priority.length + filters.source.length > 0;
+  document.getElementById('filter-toggle').classList.toggle('active', active);
+}
+
+// ─── リストレンダリング ───────────────────────
+function renderList(){
+  const list = projects.filter(matchProject).sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0));
+  mainEl.innerHTML = '';
+  if(!list.length){
+    mainEl.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>${projects.length ? 'フィルター条件に一致する案件がありません' : '案件を追加しましょう'}</p></div>`;
+    return;
+  }
+  list.forEach(p => {
+    const wrap = document.createElement('div');
+    wrap.className = 'card-wrap';
+    const bg = document.createElement('div');
+    bg.className = 'card-bg'; bg.textContent = '削除';
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const st = STATUS_MAP[p.status] || {label:p.status,cls:'st-hold'};
+    const pr = PRIORITY_MAP[p.priority] || PRIORITY_MAP.mid;
+    const today = new Date().toISOString().slice(0,10);
+    const nextOverdue = p.nextDate && p.nextDate < today;
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="priority-mark ${pr.mark}"></div>
+        <div class="card-title">${esc(p.company)}</div>
+        <div class="status-badge ${st.cls}">${st.label}</div>
+      </div>
+      ${p.contact ? `<div class="card-body">${esc(p.contact)}${p.contactInfo ? ' · <span style="color:var(--text-muted)">' + esc(p.contactInfo) + '</span>' : ''}</div>` : ''}
+      ${p.memo ? `<div class="card-body" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.memo)}</div>` : ''}
+      <div class="card-meta">
+        ${p.source ? `<span class="tag source">${esc(p.source)}</span>` : ''}
+        ${(p.tasks||[]).filter(t=>!t.done).length ? `<span class="tag">📌 タスク ${(p.tasks||[]).filter(t=>!t.done).length}</span>` : ''}
+        ${(p.histories||[]).length ? `<span class="tag">📝 ${(p.histories||[]).length}件</span>` : ''}
+        ${(p.works||[]).length ? `<span class="tag" style="background:var(--accent-light);color:var(--accent-mid)">🔗 ${(p.works||[]).length}</span>` : ''}
+        ${p.amount ? `<span class="card-amount">¥${Number(p.amount).toLocaleString()}万</span>` : ''}
+      </div>
+      ${p.nextDate ? `<div class="next-action">${nextOverdue ? '⚠️' : '📅'} 次回アクション：${p.nextDate}${nextOverdue ? ' 期限超過' : ''}</div>` : ''}
+    `;
+    card.addEventListener('click', () => openDetail(p.id));
+
+    // スワイプ削除
+    addSwipe(wrap, card, bg, () => deleteProject(p.id));
+
+    wrap.appendChild(bg);
+    wrap.appendChild(card);
+    mainEl.appendChild(wrap);
+  });
+}
+
+// ─── 追加・編集フォーム ───────────────────────
+const formSheetEl = document.getElementById('form-sheet');
+let editingId = null;
+
+fabEl.addEventListener('click', () => openForm(null));
+document.getElementById('form-close').addEventListener('click', closeSheet);
+document.getElementById('form-save').addEventListener('click', saveForm);
+
+function openForm(id){
+  editingId = id;
+  document.getElementById('form-title').textContent = id ? '案件を編集' : '新規案件';
+  if(id){
+    const p = projects.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('f-company').value = p.company||'';
+    document.getElementById('f-contact').value = p.contact||'';
+    document.getElementById('f-contact-info').value = p.contactInfo||'';
+    document.getElementById('f-status').value = p.status||'candidate';
+    document.getElementById('f-priority').value = p.priority||'mid';
+    document.getElementById('f-amount').value = p.amount||'';
+    document.getElementById('f-source').value = p.source||'';
+    document.getElementById('f-next-date').value = p.nextDate||'';
+    document.getElementById('f-memo').value = p.memo||'';
+  } else {
+    ['f-company','f-contact','f-contact-info','f-amount','f-source','f-next-date','f-memo'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('f-status').value = 'candidate';
+    document.getElementById('f-priority').value = 'mid';
+  }
+  openSheet(formSheetEl);
+}
+
+function saveForm(){
+  const company = document.getElementById('f-company').value.trim();
+  if(!company){ showToast('会社名を入力してください'); return; }
+  const now = Date.now();
+  if(editingId){
+    const p = projects.find(x => x.id === editingId);
+    if(!p) return;
+    Object.assign(p, {
+      company,
+      contact: document.getElementById('f-contact').value.trim(),
+      contactInfo: document.getElementById('f-contact-info').value.trim(),
+      status: document.getElementById('f-status').value,
+      priority: document.getElementById('f-priority').value,
+      amount: document.getElementById('f-amount').value,
+      source: document.getElementById('f-source').value.trim(),
+      nextDate: document.getElementById('f-next-date').value,
+      memo: document.getElementById('f-memo').value.trim(),
+      updatedAt: now,
+    });
+  } else {
+    projects.unshift({
+      id: 'p_'+now,
+      company,
+      contact: document.getElementById('f-contact').value.trim(),
+      contactInfo: document.getElementById('f-contact-info').value.trim(),
+      status: document.getElementById('f-status').value,
+      priority: document.getElementById('f-priority').value,
+      amount: document.getElementById('f-amount').value,
+      source: document.getElementById('f-source').value.trim(),
+      nextDate: document.getElementById('f-next-date').value,
+      memo: document.getElementById('f-memo').value.trim(),
+      histories: [],
+      tasks: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  save(); closeSheet(); renderList();
+  showToast(editingId ? '案件を更新しました' : '案件を追加しました');
+}
+
+// ─── 詳細シート ───────────────────────────────
+const detailSheetEl = document.getElementById('detail-sheet');
+let detailId = null;
+
+document.getElementById('detail-close').addEventListener('click', closeSheet);
+
+function openDetail(id){
+  detailId = id;
+  renderDetail();
+  openSheet(detailSheetEl);
+}
+
+function renderDetail(){
+  const p = projects.find(x => x.id === detailId);
+  if(!p) return;
+  document.getElementById('detail-company').textContent = p.company;
+  const st = STATUS_MAP[p.status] || {label:p.status,cls:'st-hold'};
+  const pr = PRIORITY_MAP[p.priority] || PRIORITY_MAP.mid;
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div class="detail-actions">
+      <button class="edit-btn" id="d-edit">✏️ 編集</button>
+      <button class="del-btn" id="d-del">🗑 削除</button>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">基本情報</div>
+      <div class="detail-row"><span class="label">ステータス</span><span class="val"><span class="status-badge ${st.cls}">${st.label}</span></span></div>
+      <div class="detail-row"><span class="label">優先度</span><span class="val">${pr.label}</span></div>
+      ${p.contact ? `<div class="detail-row"><span class="label">担当者</span><span class="val">${esc(p.contact)}</span></div>` : ''}
+      ${p.contactInfo ? `<div class="detail-row"><span class="label">連絡先</span><span class="val">${esc(p.contactInfo)}</span></div>` : ''}
+      ${p.amount ? `<div class="detail-row"><span class="label">想定単価</span><span class="val" style="color:var(--accent);font-weight:700">¥${Number(p.amount).toLocaleString()}万円</span></div>` : ''}
+      ${p.source ? `<div class="detail-row"><span class="label">ソース</span><span class="val">${esc(p.source)}</span></div>` : ''}
+      ${p.nextDate ? `<div class="detail-row"><span class="label">次回アクション</span><span class="val">${p.nextDate}</span></div>` : ''}
+      ${p.memo ? `<div class="detail-row" style="flex-direction:column;align-items:flex-start"><span class="label" style="margin-bottom:4px">メモ</span><span class="val" style="text-align:left;line-height:1.6;white-space:pre-wrap">${esc(p.memo)}</span></div>` : ''}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        折衝・アクション履歴
+        <button style="font-size:12px;background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;border-radius:8px;font-weight:700;cursor:pointer" id="d-add-history">＋追加</button>
+      </div>
+      ${!(p.histories||[]).length ? '<p style="font-size:13px;color:var(--text-muted);padding:8px 0">まだ記録がありません</p>' :
+        (p.histories||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).map((h,i) => `
+          <div class="history-item">
+            <div class="history-date">${h.date} <span style="float:right;cursor:pointer;color:var(--danger)" data-del-history="${i}">✕</span></div>
+            <div class="history-text">${esc(h.text)}</div>
+          </div>
+        `).join('')}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        タスク
+        <button style="font-size:12px;background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;border-radius:8px;font-weight:700;cursor:pointer" id="d-add-task">＋追加</button>
+      </div>
+      ${!(p.tasks||[]).length ? '<p style="font-size:13px;color:var(--text-muted);padding:8px 0">タスクがありません</p>' :
+        (p.tasks||[]).map((t,i) => `
+          <div class="task-item">
+            <div class="task-check ${t.done ? 'done' : ''}" data-task-toggle="${i}">${t.done ? '✓' : ''}</div>
+            <div style="flex:1">
+              <span class="${t.done ? 'task-done-text' : ''}">${esc(t.text)}</span>
+              ${t.date ? `<div style="font-size:11px;color:var(--text-muted)">${t.date}</div>` : ''}
+            </div>
+            <span style="cursor:pointer;color:var(--danger);font-size:13px" data-del-task="${i}">✕</span>
+          </div>
+        `).join('')}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        関連ナレッジ
+        <button style="font-size:12px;background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;border-radius:8px;font-weight:700;cursor:pointer" id="d-add-kn">＋追加</button>
+      </div>
+      ${!getRelatedKnowledges(p.id).length ? '<p style="font-size:13px;color:var(--text-muted);padding:8px 0">関連ナレッジがありません</p>' :
+        getRelatedKnowledges(p.id).map(k => {
+          const cat = KN_CAT_MAP[k.category]||KN_CAT_MAP.other;
+          return `<div style="padding:8px 0;border-bottom:1px solid var(--bg-card2);cursor:pointer" data-kn-open="${k.id}">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span class="kn-cat-badge ${cat.cls}">${cat.label}</span>
+              <span style="font-size:13px;font-weight:700;font-family:var(--font-display)">${esc(k.title)}</span>
+            </div>
+            ${k.body?`<div style="font-size:12px;color:var(--text-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(k.body)}</div>`:''}
+          </div>`;
+        }).join('')}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        制作物
+        <button style="font-size:12px;background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;border-radius:8px;font-weight:700;cursor:pointer" id="d-add-work">＋追加</button>
+      </div>
+      ${!(p.works||[]).length ? '<p style="font-size:13px;color:var(--text-muted);padding:8px 0">制作物がありません</p>' :
+        (p.works||[]).map((w,i) => `
+          <div style="padding:10px 0;border-bottom:1px solid var(--bg-card2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span class="work-status-badge ws-${w.status||'demo'}">${WORK_STATUS_MAP[w.status||'demo']||w.status}</span>
+              <span style="font-size:14px;font-weight:700;font-family:var(--font-display);flex:1">${esc(w.title)}</span>
+              <span style="cursor:pointer;color:var(--danger);font-size:13px" data-del-work="${i}">✕</span>
+            </div>
+            <div style="font-size:11px;color:var(--accent-mid);font-family:var(--font-mono);margin-bottom:4px;word-break:break-all">${esc(w.url)}</div>
+            ${w.date ? `<div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:4px">${w.date}</div>` : ''}
+            ${w.memo ? `<div style="font-size:12px;color:var(--text-2);line-height:1.5">${esc(w.memo)}</div>` : ''}
+            <a href="${esc(w.url)}" target="_blank" rel="noopener" class="work-open-btn" style="display:inline-flex;margin-top:8px">🔗 サイトを開く</a>
+          </div>
+        `).join('')}
+    </div>
+  `;
+
+  body.querySelector('#d-edit').addEventListener('click', () => { closeSheet(); setTimeout(()=>openForm(p.id), 300); });
+  body.querySelector('#d-del').addEventListener('click', () => { closeSheet(); setTimeout(()=>deleteProject(p.id, true), 300); });
+
+  const addHistBtn = body.querySelector('#d-add-history');
+  if(addHistBtn) addHistBtn.addEventListener('click', () => openHistorySheet());
+  const addTaskBtn = body.querySelector('#d-add-task');
+  if(addTaskBtn) addTaskBtn.addEventListener('click', () => openTaskSheet());
+
+  body.querySelectorAll('[data-del-history]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(el.dataset.delHistory);
+      // sorted インデックスをオリジナルに変換
+      const sorted = (p.histories||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+      const orig = p.histories.indexOf(sorted[idx]);
+      p.histories.splice(orig, 1);
+      save(); renderDetail(); renderList();
+    });
+  });
+  body.querySelectorAll('[data-task-toggle]').forEach(el => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.taskToggle);
+      p.tasks[i].done = !p.tasks[i].done;
+      p.updatedAt = Date.now();
+      save(); renderDetail(); renderList();
+    });
+  });
+  body.querySelectorAll('[data-del-task]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      p.tasks.splice(parseInt(el.dataset.delTask), 1);
+      save(); renderDetail(); renderList();
+    });
+  });
+
+  const addKnBtn = body.querySelector('#d-add-kn');
+  if(addKnBtn) addKnBtn.addEventListener('click', () => {
+    closeSheet();
+    setTimeout(()=>{
+      // 案件を事前選択した状態でナレッジシートを開く
+      openKnSheet(null);
+      setTimeout(()=>{ document.getElementById('kn-project').value=p.id; },50);
+    },300);
+  });
+  body.querySelectorAll('[data-kn-open]').forEach(el2=>{
+    el2.addEventListener('click',()=>{ closeSheet(); setTimeout(()=>openKnDetail(el2.dataset.knOpen),300); });
+  });
+
+  const addWorkBtn = body.querySelector('#d-add-work');
+  if(addWorkBtn) addWorkBtn.addEventListener('click', () => openWorkSheet());
+
+  body.querySelectorAll('[data-del-work]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      p.works.splice(parseInt(el.dataset.delWork), 1);
+      save(); renderDetail(); renderList(); renderPortfolio();
+    });
+  });
+}
+
+// ─── 履歴・タスクシート ───────────────────────
+const historySheetEl = document.getElementById('history-sheet');
+const taskSheetEl = document.getElementById('task-sheet');
+document.getElementById('history-close').addEventListener('click', closeSheet);
+document.getElementById('task-close').addEventListener('click', closeSheet);
+
+function openHistorySheet(){
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('h-date').value = today;
+  document.getElementById('h-text').value = '';
+  openSheet(historySheetEl);
+}
+function openTaskSheet(){
+  document.getElementById('t-date').value = '';
+  document.getElementById('t-text').value = '';
+  openSheet(taskSheetEl);
+}
+document.getElementById('history-save').addEventListener('click', () => {
+  const text = document.getElementById('h-text').value.trim();
+  const date = document.getElementById('h-date').value;
+  if(!text || !date){ showToast('日付と内容を入力してください'); return; }
+  const p = projects.find(x => x.id === detailId);
+  if(!p) return;
+  p.histories = p.histories || [];
+  p.histories.push({ date, text });
+  p.updatedAt = Date.now();
+  save(); closeSheet(); setTimeout(()=>{ openDetail(detailId); renderList(); }, 300);
+  showToast('履歴を追加しました');
+});
+document.getElementById('task-save').addEventListener('click', () => {
+  const text = document.getElementById('t-text').value.trim();
+  if(!text){ showToast('タスク内容を入力してください'); return; }
+  const p = projects.find(x => x.id === detailId);
+  if(!p) return;
+  p.tasks = p.tasks || [];
+  p.tasks.push({ text, date: document.getElementById('t-date').value, done: false });
+  p.updatedAt = Date.now();
+  save(); closeSheet(); setTimeout(()=>{ openDetail(detailId); renderList(); }, 300);
+  showToast('タスクを追加しました');
+});
+
+// ─── 削除 ─────────────────────────────────────
+function deleteProject(id, fromDetail){
+  const idx = projects.findIndex(x => x.id === id);
+  if(idx < 0) return;
+  const backup = { ...projects[idx] };
+  projects.splice(idx, 1);
+  save(); renderList();
+  if(fromDetail) closeSheet();
+  showUndo(`「${backup.company}」を削除しました`, () => {
+    projects.splice(idx, 0, backup);
+    save(); renderList();
+  });
+}
+
+// ─── スワイプ ─────────────────────────────────
+function addSwipe(wrap, card, bg, onDelete){
+  let startX=0, dx=0, dragging=false;
+  const threshold = 80;
+  function start(x){ startX=x; dx=0; dragging=true; }
+  function move(x){
+    if(!dragging) return;
+    dx = Math.min(0, x - startX);
+    const r = Math.min(1, Math.abs(dx)/threshold);
+    card.style.transform = `translateX(${dx}px)`;
+    bg.style.opacity = r > 0.2 ? String(r) : '0';
+  }
+  function end(){
+    if(!dragging) return; dragging=false;
+    if(dx < -threshold){
+      card.style.transform = 'translateX(-100%)';
+      bg.style.opacity = '1';
+      setTimeout(()=>{ wrap.style.opacity='0'; wrap.style.transition='opacity .2s'; setTimeout(onDelete,200); }, 200);
+    } else {
+      card.style.transform = ''; bg.style.opacity = '0';
+    }
+    dx = 0;
+  }
+  card.addEventListener('touchstart', e=>start(e.touches[0].clientX), {passive:true});
+  card.addEventListener('touchmove', e=>move(e.touches[0].clientX), {passive:true});
+  card.addEventListener('touchend', end);
+}
+
+// ─── シート開閉 ───────────────────────────────
+const overlay = document.getElementById('overlay');
+let activeSheet = null;
+function openSheet(el){
+  if(activeSheet && activeSheet !== el){
+    activeSheet.classList.remove('show');
+  }
+  activeSheet = el;
+  el.classList.add('show');
+  overlay.classList.add('show');
+}
+function closeSheet(){
+  if(activeSheet) activeSheet.classList.remove('show');
+  overlay.classList.remove('show');
+  activeSheet = null;
+}
+overlay.addEventListener('click', closeSheet);
+
+// ─── トースト ─────────────────────────────────
+const toastEl = document.getElementById('toast');
+const toastMsg = document.getElementById('toast-msg');
+const toastUndo = document.getElementById('toast-undo');
+let undoFn = null;
+
+function showToast(msg){
+  clearTimeout(undoTimer);
+  toastMsg.textContent = msg;
+  toastUndo.style.display = 'none';
+  undoFn = null;
+  toastEl.classList.add('show');
+  undoTimer = setTimeout(()=>toastEl.classList.remove('show'), 2500);
+}
+function showUndo(msg, fn){
+  clearTimeout(undoTimer);
+  toastMsg.textContent = msg;
+  toastUndo.style.display = '';
+  undoFn = fn;
+  toastEl.classList.add('show');
+  undoTimer = setTimeout(()=>{ toastEl.classList.remove('show'); undoFn=null; }, 4000);
+}
+toastUndo.addEventListener('click', ()=>{
+  clearTimeout(undoTimer);
+  if(undoFn){ undoFn(); undoFn=null; }
+  toastEl.classList.remove('show');
+});
+
+// ─── バックアップ ─────────────────────────────
+// ─── NAS設定 ─────────────────────────────
+const KN_STORE = 'anken_nas_v1';
+const MG = 10;
+
+function loadNas(){ try{ return JSON.parse(localStorage.getItem(KN_STORE)||'null'); }catch(e){ return null; } }
+function saveNas(c){ try{ localStorage.setItem(KN_STORE, JSON.stringify(c)); }catch(e){} }
+
+function nowStr(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return [d.getFullYear(),p(d.getMonth()+1),p(d.getDate())].join('-')+'_'+p(d.getHours())+p(d.getMinutes());
+}
+
+function dlJson(fn, json){
+  const blob = new Blob([json],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=fn; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+}
+
+function exportNas(cfg, fn, json, cb){
+  const base = 'https://'+cfg.ip+':'+cfg.port+'/webapi';
+  fetch(base+'/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account='+
+    encodeURIComponent(cfg.user)+'&passwd='+encodeURIComponent(cfg.pass)+
+    '&session=FileStation&format=sid')
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.success) throw new Error('login');
+    const sid = d.data.sid;
+    const blob = new Blob([json],{type:'application/json'});
+    const fd = new FormData();
+    fd.append('api','SYNO.FileStation.Upload'); fd.append('version','2'); fd.append('method','upload');
+    fd.append('path','/'+cfg.folder.replace(/^\//,''));
+    fd.append('create_parents','true'); fd.append('overwrite','true');
+    fd.append('*sid',sid); fd.append('file',blob,fn);
+    return fetch(base+'/entry.cgi',{method:'POST',body:fd})
+      .then(r=>r.json())
+      .then(up=>{
+        if(!up.success) throw new Error('upload');
+        pruneNas(base,sid,cfg.folder,()=>{ logoutNas(base,sid); cb(true); });
+      });
+  })
+  .catch(()=>cb(false));
+}
+
+function pruneNas(base, sid, folder, done){
+  fetch(base+'/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=/'+
+    encodeURIComponent(folder.replace(/^\//,''))+
+    '&pattern=anken_backup**.json&sort_by=name&sort_direction=ASC&_sid='+encodeURIComponent(sid))
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.success){ done(); return; }
+    const files = d.data.files||[];
+    const toDel = files.slice(0, Math.max(0, files.length-MG));
+    if(!toDel.length){ done(); return; }
+    fetch(base+'/entry.cgi',{
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'api=SYNO.FileStation.Delete&version=2&method=start&path='+
+        encodeURIComponent(JSON.stringify(toDel.map(f=>f.path)))+
+        '&recursive=true&_sid='+encodeURIComponent(sid)
+    }).then(()=>done()).catch(()=>done());
+  }).catch(()=>done());
+}
+
+function logoutNas(base, sid){
+  fetch(base+'/auth.cgi?api=SYNO.API.Auth&version=1&method=logout&session=FileStation&_sid='+encodeURIComponent(sid))
+    .catch(()=>{});
+}
+
+function doExport(){
+  const btn = document.getElementById('expBtn');
+  if(btn){ btn.disabled=true; btn.textContent='送信中…'; }
+  const cfg = loadNas();
+  const has = cfg && cfg.ip && cfg.user && cfg.pass && cfg.folder;
+  const fn = 'anken_backup_'+nowStr()+'.json';
+  const json = JSON.stringify({exported: new Date().toISOString(), projects}, null, 2);
+
+  function done(toNas){
+    closeSheet();
+    showToast(toNas ? 'NASにバックアップしました ✓' : 'エクスポートしました ✓');
+  }
+  if(has){
+    exportNas(cfg, fn, json, ok=>{
+      if(ok){ done(true); }
+      else { dlJson(fn, json); closeSheet(); showToast('NAS失敗 → ファイルに保存しました'); }
+    });
+  } else { dlJson(fn, json); done(false); }
+}
+
+// ─── 設定シート ───────────────────────────
+const settingsSheetEl = document.getElementById('settings-sheet');
+
+function fld(l, h){
+  return '<div class="field"><label>'+l+'</label>'+h+'</div>';
+}
+
+function openSettingsSheet(){
+  const cfg = loadNas() || {ip:'', port:'5001', user:'', pass:'', folder:''};
+  const dc = document.getElementById('settings-content');
+  const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  dc.innerHTML =
+    '<div class="sh-header"><div class="sh-title">設定・バックアップ</div><button class="sh-close" id="sc-settings">✕</button></div>'+
+    '<div style="padding:0 20px 40px">'+
+    '<div class="set-sec">バックアップ</div>'+
+    '<div class="set-desc">案件データをJSONで保存。NASが設定済みの場合はNASへ送信し、未設定・失敗時はiPhoneのファイルアプリへ保存されます。世代は最大'+MG+'件で自動ローテーション。</div>'+
+    '<div class="btn-row"><button class="btn-exp" id="expBtn">⬆ エクスポート</button></div>'+
+    '<hr class="set-hr">'+
+    '<div class="set-sec">リストア</div>'+
+    '<div class="set-desc">バックアップJSONを読み込みます。既存データはそのまま残し、新しい案件のみ追加します。</div>'+
+    '<div class="btn-row"><button class="btn-sub" id="impBtn">⬇ インポート</button></div>'+
+    '<hr class="set-hr">'+
+    '<div class="set-sec">NAS設定（Synology）</div>'+
+    '<div class="set-desc">Synology NASに直接バックアップする場合のみ設定してください。未設定でもエクスポートは動作します。</div>'+
+    fld('NAS IPアドレス', '<input type="text" id="nIp" placeholder="192.168.0.170" value="'+esc2(cfg.ip)+'" inputmode="url" autocomplete="off">')+
+    fld('ポート番号', '<input type="text" id="nPt" placeholder="5001" value="'+esc2(cfg.port)+'" inputmode="numeric">')+
+    fld('ユーザー名', '<input type="text" id="nUs" placeholder="API_User" value="'+esc2(cfg.user)+'" autocomplete="off">')+
+    fld('パスワード', '<input type="password" id="nPw" placeholder="••••••••" value="'+esc2(cfg.pass)+'" autocomplete="off">')+
+    fld('保存先フォルダ', '<input type="text" id="nFo" placeholder="homes/user/AnkenBackup" value="'+esc2(cfg.folder)+'" autocomplete="off">')+
+    '<button class="btn-save" id="nSave">NAS設定を保存</button>'+
+    '</div>';
+
+  document.getElementById('sc-settings').addEventListener('click', closeSheet);
+  document.getElementById('expBtn').addEventListener('click', doExport);
+  document.getElementById('impBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
+  document.getElementById('nSave').addEventListener('click', ()=>{
+    saveNas({
+      ip:     document.getElementById('nIp').value.trim(),
+      port:   document.getElementById('nPt').value.trim() || '5001',
+      user:   document.getElementById('nUs').value.trim(),
+      pass:   document.getElementById('nPw').value,
+      folder: document.getElementById('nFo').value.trim()
+    });
+    showToast('NAS設定を保存しました');
+  });
+  openSheet(settingsSheetEl);
+}
+
+document.getElementById('settings-btn').addEventListener('click', openSettingsSheet);
+
+document.getElementById('importFile').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      const imported = data.projects || (Array.isArray(data) ? data : []);
+      const eids = {};
+      projects.forEach(p=>{ eids[p.id]=true; });
+      let added = 0;
+      imported.forEach(p=>{
+        if(!p.id) p.id = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+        if(!eids[p.id]){ projects.push(p); added++; }
+      });
+      save(); renderList();
+      showToast(added+'件の案件をインポートしました');
+    }catch(err){
+      showToast('インポートに失敗しました');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
+
+// ─── ダッシュボード ───────────────────────────
+function renderDash(){
+  const total = projects.length;
+  const won   = projects.filter(p=>p.status==='won').length;
+  const lost  = projects.filter(p=>p.status==='lost').length;
+  const closed = won + lost; // 決着済み（分母）
+  const active = projects.filter(p=>!['won','lost'].includes(p.status)).length;
+  const revenue = projects.filter(p=>p.status==='won').reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const pipeline = projects.filter(p=>!['won','lost','hold'].includes(p.status)).reduce((s,p)=>s+(Number(p.amount)||0),0);
+  // 獲得率：決着済み案件のうち受注した割合
+  const winRate = closed ? Math.round(won/closed*100) : 0;
+  // パイプライン比率（受注金額 vs パイプライン）
+  const totalVal = revenue + pipeline;
+  const revPct   = totalVal ? Math.round(revenue/totalVal*100) : 0;
+  const pipPct   = totalVal ? 100 - revPct : 0;
+
+  // 月別受注金額（createdAt基準、直近6ヶ月）
+  const monthlyData = buildMonthlyRevenue();
+
+  dashEl.innerHTML = `
+    <div class="dash-grid">
+      <div class="kpi">
+        <div class="kpi-label">総案件数</div>
+        <div class="kpi-val">${total}</div>
+        <div class="kpi-sub">進行中 ${active} 件</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">獲得率</div>
+        <div class="kpi-val accent">${winRate}<span style="font-size:16px;font-weight:400">%</span></div>
+        <div class="kpi-sub">決着 ${closed} 件基準</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">受注金額</div>
+        <div class="kpi-val accent">${revenue}<span style="font-size:14px;font-weight:400">万</span></div>
+        <div class="kpi-sub">${won} 件受注</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">パイプライン</div>
+        <div class="kpi-val">${pipeline}<span style="font-size:14px;font-weight:400">万</span></div>
+        <div class="kpi-sub">見込み ${active} 件</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">受注 vs パイプライン</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div style="flex:1;height:14px;border-radius:7px;background:var(--surface-2);overflow:hidden;position:relative">
+          <div style="height:100%;width:${revPct}%;background:var(--accent-mid);border-radius:7px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-2);white-space:nowrap;font-family:var(--font-mono)">${revPct}% 受注</div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--text-3)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--accent-mid);display:inline-block"></span>受注 ${revenue}万</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--surface-2);border:1.5px solid var(--border);display:inline-block"></span>パイプライン ${pipeline}万</span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">月別受注金額（直近6ヶ月）</div>
+      <canvas id="c-monthly" height="180"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">ステータス別 案件数</div>
+      <canvas id="c-status" height="190"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">優先度別 案件数</div>
+      <canvas id="c-priority" height="150"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">案件ソース別</div>
+      <canvas id="c-source" height="170"></canvas>
+    </div>
+  `;
+
+  drawCharts(monthlyData);
+}
+
+// ─── 制作物ステータスマップ ───────────────
+const WORK_STATUS_MAP = {
+  demo:     'デモ',
+  active:   '正式稼働',
+  revision: '改修中',
+  archived: 'アーカイブ',
+};
+
+// ─── 制作物シート ─────────────────────────
+const workSheetEl = document.getElementById('work-sheet');
+let workEditingProjectId = null;
+let workEditingIdx = null;
+
+document.getElementById('work-close').addEventListener('click', closeSheet);
+
+function openWorkSheet(pid, idx){
+  workEditingProjectId = pid || detailId;
+  workEditingIdx = (idx !== undefined) ? idx : null;
+  const p = projects.find(x => x.id === workEditingProjectId);
+  document.getElementById('work-sheet-title').textContent = workEditingIdx !== null ? '制作物を編集' : '制作物を登録';
+  if(workEditingIdx !== null && p){
+    const w = (p.works||[])[workEditingIdx];
+    document.getElementById('w-url').value = w.url||'';
+    document.getElementById('w-title').value = w.title||'';
+    document.getElementById('w-status').value = w.status||'demo';
+    document.getElementById('w-date').value = w.date||'';
+    document.getElementById('w-memo').value = w.memo||'';
+  } else {
+    ['w-url','w-title','w-memo'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('w-status').value='demo';
+    document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
+  }
+  openSheet(workSheetEl);
+}
+
+document.getElementById('work-save').addEventListener('click', ()=>{
+  const url   = document.getElementById('w-url').value.trim();
+  const title = document.getElementById('w-title').value.trim();
+  if(!url || !title){ showToast('URLとタイトルを入力してください'); return; }
+  const p = projects.find(x => x.id === workEditingProjectId);
+  if(!p) return;
+  p.works = p.works || [];
+  const entry = {
+    url,
+    title,
+    status: document.getElementById('w-status').value,
+    date:   document.getElementById('w-date').value,
+    memo:   document.getElementById('w-memo').value.trim(),
+    createdAt: Date.now(),
+  };
+  if(workEditingIdx !== null){
+    p.works[workEditingIdx] = {...p.works[workEditingIdx], ...entry};
+  } else {
+    p.works.push(entry);
+  }
+  p.updatedAt = Date.now();
+  save(); closeSheet();
+  setTimeout(()=>{ renderDetail(); renderList(); renderPortfolio(); }, 300);
+  showToast(workEditingIdx !== null ? '制作物を更新しました' : '制作物を登録しました');
+});
+
+// ─── ポートフォリオビュー ─────────────────
+function renderPortfolio(){
+  const el = document.getElementById('portfolio-view');
+  // 全制作物を収集（案件情報と紐付け）
+  const allWorks = [];
+  projects.forEach(p=>{
+    (p.works||[]).forEach((w,i)=>{
+      allWorks.push({...w, _pid: p.id, _pName: p.company, _wIdx: i});
+    });
+  });
+  // 制作日降順ソート
+  allWorks.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  if(!allWorks.length){
+    el.innerHTML = `<div class="portfolio-empty"><div class="icon">🗂</div><p>制作物がありません<br><span style="font-size:12px">案件詳細から登録してください</span></p></div>`;
+    return;
+  }
+
+  const cards = allWorks.map(w => {
+    const stLabel = WORK_STATUS_MAP[w.status||'demo'] || w.status;
+    return `
+      <div class="work-card" data-pid="${esc(w._pid)}" data-widx="${w._wIdx}">
+        <div class="work-card-header">
+          <div class="work-card-title">${esc(w.title)}</div>
+          <span class="work-status-badge ws-${w.status||'demo'}">${stLabel}</span>
+        </div>
+        <div class="work-card-company">🏢 ${esc(w._pName)}</div>
+        <div class="work-card-url">${esc(w.url)}</div>
+        ${w.date ? `<div class="work-card-date">📅 ${w.date}</div>` : ''}
+        ${w.memo ? `<div class="work-card-memo">${esc(w.memo)}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <a href="${esc(w.url)}" target="_blank" rel="noopener" class="work-open-btn">🔗 サイトを開く</a>
+          <button class="work-open-btn" style="background:var(--surface-2);color:var(--text-2);border:1.5px solid var(--border)" data-edit-pid="${esc(w._pid)}" data-edit-widx="${w._wIdx}">✏️ 編集</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="portfolio-header">
+      <div class="portfolio-header-title">制作物一覧</div>
+      <div class="portfolio-count">${allWorks.length} 件</div>
+    </div>
+    ${cards}
+  `;
+
+  // 案件名クリックで案件詳細へ
+  el.querySelectorAll('.work-card[data-pid]').forEach(card=>{
+    card.addEventListener('click', e=>{
+      if(e.target.closest('a') || e.target.closest('button')) return;
+      openDetail(card.dataset.pid);
+    });
+  });
+  // 編集ボタン
+  el.querySelectorAll('[data-edit-pid]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      openWorkSheet(btn.dataset.editPid, parseInt(btn.dataset.editWidx));
+    });
+  });
+}
+
+// ─── ナレッジ管理 ───────────────────────────
+const KN_DATA_STORE = 'anken_knowledge_v1';
+let knowledges = [];
+let knEditingId = null;
+let knSearchQ = '';
+let knCatFilter = 'all';
+
+const KN_CAT_MAP = {
+  sales:   { label:'営業',     cls:'kn-cat-sales'   },
+  tech:    { label:'技術',     cls:'kn-cat-tech'    },
+  trouble: { label:'トラブル', cls:'kn-cat-trouble' },
+  other:   { label:'その他',   cls:'kn-cat-other'   },
+};
+
+function loadKnowledges(){ try{ knowledges = JSON.parse(localStorage.getItem(KN_DATA_STORE)||'[]'); }catch(e){ knowledges=[]; } }
+function saveKnowledges(){ localStorage.setItem(KN_DATA_STORE, JSON.stringify(knowledges)); }
+loadKnowledges();
+
+// ── ナレッジビュー描画 ──
+function renderKnowledge(){
+  const el = document.getElementById('knowledge-view');
+  const fab = document.querySelector('.kn-fab');
+  if(fab) fab.style.display = 'flex';
+
+  // フィルター適用
+  const q = knSearchQ.toLowerCase();
+  const filtered = knowledges.filter(k => {
+    if(knCatFilter !== 'all' && k.category !== knCatFilter) return false;
+    if(!q) return true;
+    return (k.title||'').toLowerCase().includes(q) ||
+           (k.body||'').toLowerCase().includes(q) ||
+           (k.tags||[]).some(t => t.toLowerCase().includes(q));
+  }).sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+  const catBtns = ['all',...Object.keys(KN_CAT_MAP)].map(c => {
+    const label = c==='all' ? 'すべて' : KN_CAT_MAP[c].label;
+    const cnt = c==='all' ? knowledges.length : knowledges.filter(k=>k.category===c).length;
+    return `<button class="kn-cat-btn ${knCatFilter===c?'active':''}" data-cat="${c}">${label} ${cnt}</button>`;
+  }).join('');
+
+  const cards = filtered.length ? filtered.map(k => {
+    const cat = KN_CAT_MAP[k.category] || KN_CAT_MAP.other;
+    const tags = (k.tags||[]).map(t => {
+      const hi = q && t.toLowerCase().includes(q);
+      return `<span class="kn-tag ${hi?'highlight':''}">${esc(t)}</span>`;
+    }).join('');
+    const proj = k.projectId ? projects.find(p=>p.id===k.projectId) : null;
+    return `
+      <div class="kn-card" data-knid="${k.id}">
+        <div class="kn-card-header">
+          <span class="kn-cat-badge ${cat.cls}">${cat.label}</span>
+          <span class="kn-card-title">${esc(k.title)}</span>
+        </div>
+        ${k.body ? `<div class="kn-card-body">${esc(k.body)}</div>` : ''}
+        <div class="kn-card-meta">
+          ${tags}
+          <span class="kn-date">${k.date||''}</span>
+        </div>
+        ${proj ? `<div class="kn-project-link">🏢 ${esc(proj.company)}</div>` : ''}
+      </div>`;
+  }).join('') : `<div class="kn-empty"><div class="icon">📖</div><p>${knowledges.length?'該当するナレッジがありません':'ナレッジを追加しましょう'}</p></div>`;
+
+  el.innerHTML = `
+    <div class="kn-search-bar">
+      <div class="kn-search-wrap">
+        <span class="kn-search-icon">🔍</span>
+        <input type="search" id="kn-search-input" placeholder="キーワード・タグで検索…" autocomplete="off" value="${esc(knSearchQ)}">
+      </div>
+    </div>
+    <div class="kn-cat-scroll">${catBtns}</div>
+    <div class="kn-list">${cards}</div>
+  `;
+
+  // 検索
+  el.querySelector('#kn-search-input').addEventListener('input', e => {
+    knSearchQ = e.target.value;
+    renderKnowledge();
+  });
+  // カテゴリ
+  el.querySelectorAll('.kn-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => { knCatFilter = btn.dataset.cat; renderKnowledge(); });
+  });
+  // カード→詳細
+  el.querySelectorAll('.kn-card[data-knid]').forEach(card => {
+    card.addEventListener('click', () => openKnDetail(card.dataset.knid));
+  });
+}
+
+// ── ナレッジ詳細シート ──
+const knDetailSheetEl = document.getElementById('kn-detail-sheet');
+document.getElementById('kn-detail-close').addEventListener('click', closeSheet);
+
+function openKnDetail(id){
+  const k = knowledges.find(x=>x.id===id);
+  if(!k) return;
+  const cat = KN_CAT_MAP[k.category]||KN_CAT_MAP.other;
+  const proj = k.projectId ? projects.find(p=>p.id===k.projectId) : null;
+  document.getElementById('kn-detail-title').textContent = k.title;
+  document.getElementById('kn-detail-body').innerHTML = `
+    <div style="padding:8px 20px 12px;display:flex;align-items:center;gap:8px">
+      <span class="kn-cat-badge ${cat.cls}">${cat.label}</span>
+      <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">${k.date||''}</span>
+      ${proj?`<span style="font-size:12px;color:var(--accent-mid);font-family:var(--font-mono)">🏢 ${esc(proj.company)}</span>`:''}
+    </div>
+    <div class="kn-detail-body">${esc(k.body||'')}</div>
+    ${(k.tags||[]).length?`<div class="kn-detail-tags">${(k.tags||[]).map(t=>`<span class="kn-tag">${esc(t)}</span>`).join('')}</div>`:''}
+    <div class="kn-detail-actions">
+      <button class="edit-btn" id="knd-edit">✏️ 編集</button>
+      <button class="del-btn" id="knd-del">🗑 削除</button>
+    </div>
+  `;
+  document.getElementById('knd-edit').addEventListener('click', () => { closeSheet(); setTimeout(()=>openKnSheet(k.id),300); });
+  document.getElementById('knd-del').addEventListener('click', () => {
+    knowledges = knowledges.filter(x=>x.id!==k.id);
+    saveKnowledges(); closeSheet(); renderKnowledge();
+    showToast('ナレッジを削除しました');
+  });
+  openSheet(knDetailSheetEl);
+}
+
+// ── ナレッジ登録・編集シート ──
+const knSheetEl = document.getElementById('knowledge-sheet');
+document.getElementById('kn-close').addEventListener('click', closeSheet);
+
+function openKnSheet(id){
+  knEditingId = id||null;
+  document.getElementById('kn-sheet-title').textContent = id ? 'ナレッジを編集' : 'ナレッジを追加';
+  // 関連案件セレクト構築
+  const sel = document.getElementById('kn-project');
+  sel.innerHTML = '<option value="">― 紐付けなし ―</option>' +
+    projects.map(p=>`<option value="${p.id}">${esc(p.company)}</option>`).join('');
+  if(id){
+    const k = knowledges.find(x=>x.id===id);
+    if(!k) return;
+    document.getElementById('kn-title').value = k.title||'';
+    document.getElementById('kn-category').value = k.category||'sales';
+    document.getElementById('kn-date').value = k.date||'';
+    document.getElementById('kn-body').value = k.body||'';
+    document.getElementById('kn-tags').value = (k.tags||[]).join(' ');
+    sel.value = k.projectId||'';
+  } else {
+    ['kn-title','kn-body','kn-tags'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('kn-category').value='sales';
+    document.getElementById('kn-date').value = new Date().toISOString().slice(0,10);
+    sel.value='';
+  }
+  openSheet(knSheetEl);
+}
+
+document.getElementById('kn-save').addEventListener('click',()=>{
+  const title = document.getElementById('kn-title').value.trim();
+  if(!title){ showToast('タイトルを入力してください'); return; }
+  const rawTags = document.getElementById('kn-tags').value.trim();
+  const tags = rawTags ? rawTags.split(/[\s　]+/).filter(Boolean) : [];
+  const entry = {
+    title,
+    category: document.getElementById('kn-category').value,
+    date:      document.getElementById('kn-date').value,
+    body:      document.getElementById('kn-body').value.trim(),
+    tags,
+    projectId: document.getElementById('kn-project').value||null,
+    updatedAt: Date.now(),
+  };
+  if(knEditingId){
+    const idx = knowledges.findIndex(x=>x.id===knEditingId);
+    if(idx>=0) knowledges[idx] = {...knowledges[idx], ...entry};
+  } else {
+    entry.id = 'kn_'+Date.now();
+    entry.createdAt = Date.now();
+    knowledges.unshift(entry);
+  }
+  saveKnowledges(); closeSheet();
+  setTimeout(renderKnowledge, 300);
+  showToast(knEditingId ? 'ナレッジを更新しました' : 'ナレッジを追加しました');
+});
+
+// ── ナレッジFABボタン ──
+(function(){
+  const fab = document.createElement('button');
+  fab.className = 'kn-fab';
+  fab.textContent = '＋';
+  fab.style.display = 'none';
+  fab.addEventListener('click', ()=>openKnSheet(null));
+  document.body.appendChild(fab);
+  // タブ切り替え時にFABを制御
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', ()=>{
+    fab.style.display = t.dataset.tab==='knowledge' ? 'flex' : 'none';
+    // リスト用FABと共存
+    document.getElementById('fab').style.display = t.dataset.tab==='list' ? '' : 'none';
+  }));
+})();
+
+// ── 案件詳細のナレッジ表示（関連ナレッジを詳細シートに追加） ──
+function getRelatedKnowledges(pid){
+  return knowledges.filter(k=>k.projectId===pid);
+}
+
+// ─── KPI・目標管理 ───────────────────────
+const KPI_STORE = 'anken_kpi_v1';
+
+function loadKpiData(){
+  try{ return JSON.parse(localStorage.getItem(KPI_STORE)||'{}'); }catch(e){ return {}; }
+}
+function saveKpiData(d){ localStorage.setItem(KPI_STORE, JSON.stringify(d)); }
+
+// 対象年度リスト（前年〜来年）
+function kpiYearOptions(){
+  const y = new Date().getFullYear();
+  return [y-1, y, y+1];
+}
+
+// 月ラベル生成（年度の4月〜翌3月）
+function kpiFiscalMonths(fy){
+  const months = [];
+  for(let m=0; m<12; m++){
+    const d = new Date(fy, 3+m, 1); // 4月始まり
+    months.push({ year:d.getFullYear(), month:d.getMonth(), label:`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}` });
+  }
+  return months;
+}
+
+// 案件データから月別実績を集計
+function calcMonthlyActuals(fy){
+  const months = kpiFiscalMonths(fy);
+  months.forEach(m => {
+    const inMonth = projects.filter(p => {
+      const d = new Date(p.createdAt||0);
+      return d.getFullYear()===m.year && d.getMonth()===m.month;
+    });
+    const replied  = inMonth.filter(p => !['candidate'].includes(p.status)).length;
+    const meeting  = inMonth.filter(p => ['proposal','negotiation','won','lost'].includes(p.status)).length;
+    const won      = inMonth.filter(p => p.status==='won').length;
+    const revenue  = inMonth.filter(p => p.status==='won').reduce((s,p)=>s+(Number(p.amount)||0),0);
+    m.cases   = inMonth.length;
+    m.replied = replied;
+    m.meeting = meeting;
+    m.won     = won;
+    m.revenue = revenue;
+  });
+  return months;
+}
+
+// KPIビュー描画
+function renderKpi(){
+  const el = document.getElementById('kpi-view');
+  const data = loadKpiData();
+  const curYear = new Date().getFullYear();
+  // 現在の会計年度（4月始まり）
+  const curFy = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear()-1;
+  const fy = data.activeFy || curFy;
+  const goal = (data.goals||{})[fy] || {};
+  const months = calcMonthlyActuals(fy);
+
+  // 年度集計
+  const totDm      = months.reduce((s,m)=>s+(data.dm?.[fy]?.[m.label]||0),0);
+  const totReplied = months.reduce((s,m)=>s+m.replied,0);
+  const totMeeting = months.reduce((s,m)=>s+m.meeting,0);
+  const totWon     = months.reduce((s,m)=>s+m.won,0);
+  const totRevenue = months.reduce((s,m)=>s+m.revenue,0);
+  const replyRate  = totDm ? Math.round(totReplied/totDm*100) : 0;
+  const meetRate   = totDm ? Math.round(totMeeting/totDm*100) : 0;
+  const cvRate     = totDm ? Math.round(totWon/totDm*100) : 0;
+
+  // 月次行HTML
+  const now = new Date();
+  const monthRows = months.map(m => {
+    const dm = (data.dm||{})[fy]?.[m.label] || 0;
+    const rr = dm ? Math.round(m.replied/dm*100) : 0;
+    const mr = dm ? Math.round(m.meeting/dm*100) : 0;
+    const cr = dm ? Math.round(m.won/dm*100) : 0;
+    const isPast  = new Date(m.year, m.month+1, 0) < now;
+    const isCur   = m.year===now.getFullYear() && m.month===now.getMonth();
+    // ペース判定（DM目標との比較）
+    const dmGoalMon = goal.dm ? Math.round(goal.dm/12) : 0;
+    let paceCls='kpi-pace-on', paceLabel='―';
+    if(dmGoalMon && isPast){
+      if(dm >= dmGoalMon){ paceCls='kpi-pace-ahead'; paceLabel='達成'; }
+      else { paceCls='kpi-pace-behind'; paceLabel='未達'; }
+    }
+    const barPct = dmGoalMon ? Math.min(100, Math.round(dm/dmGoalMon*100)) : 0;
+    const barCls = dm >= dmGoalMon ? 'kpi-bar-achieved' : (isPast ? 'kpi-bar-behind' : 'kpi-bar-ahead');
+    return `
+      <div class="kpi-month-row" style="${isCur ? 'border-color:var(--accent-mid);box-shadow:0 0 0 2px var(--accent-glow)' : ''}">
+        <div class="kpi-month-header">
+          <span class="kpi-month-label">${m.label}${isCur ? ' <span style="font-size:9px;background:var(--accent-light);color:var(--accent-mid);padding:1px 6px;border-radius:10px;font-family:var(--font-mono)">今月</span>' : ''}</span>
+          <div class="kpi-month-dm">
+            <span class="kpi-month-dm-label">DM数</span>
+            <input class="kpi-dm-input" type="number" min="0" value="${dm}" data-fy="${fy}" data-mon="${m.label}" inputmode="numeric">
+            <span class="kpi-pace-badge ${paceCls}">${paceLabel}</span>
+          </div>
+        </div>
+        ${dmGoalMon ? `<div class="kpi-bar-wrap"><div class="kpi-bar-fill ${barCls}" style="width:${barPct}%"></div></div><div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);margin-top:3px;margin-bottom:8px">目標 ${dmGoalMon}件 / 実績 ${dm}件</div>` : ''}
+        <div class="kpi-metrics">
+          <div class="kpi-metric">
+            <div class="kpi-metric-label">返信</div>
+            <div class="kpi-metric-val">${m.replied}</div>
+            <div class="kpi-metric-rate">${rr}%</div>
+          </div>
+          <div class="kpi-metric">
+            <div class="kpi-metric-label">商談</div>
+            <div class="kpi-metric-val">${m.meeting}</div>
+            <div class="kpi-metric-rate">${mr}%</div>
+          </div>
+          <div class="kpi-metric">
+            <div class="kpi-metric-label">成約</div>
+            <div class="kpi-metric-val">${m.won}</div>
+            <div class="kpi-metric-rate">${cr}%</div>
+          </div>
+          <div class="kpi-metric">
+            <div class="kpi-metric-label">売上</div>
+            <div class="kpi-metric-val" style="font-size:13px">${m.revenue}</div>
+            <div class="kpi-metric-rate">万</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 年間進捗サマリーのパーセント計算
+  function pct(actual, target){
+    if(!target) return '―';
+    const v = Math.round(actual/target*100);
+    const cls = v>=100?'kpi-pct-good':(v>=70?'':'kpi-pct-warn');
+    return `<span class="kpi-summary-pct ${cls}">${v}%</span>`;
+  }
+
+  el.innerHTML = `
+    <div class="kpi-section">
+      <div class="kpi-section-title">🎯 ${fy}年度 目標
+        <button class="kpi-goal-edit-btn" id="open-kpi-goal">編集</button>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          ${kpiYearOptions().map(y=>`<button style="font-size:11px;padding:3px 10px;border-radius:8px;border:1.5px solid ${y===fy?'var(--accent-mid)':'var(--border)'};background:${y===fy?'var(--accent-light)':'var(--surface-2)'};color:${y===fy?'var(--accent-mid)':'var(--text-2)'};font-family:var(--font-mono);cursor:pointer" data-fy-btn="${y}">${y}</button>`).join('')}
+        </div>
+      </div>
+      <div class="kpi-goal-card">
+        <div class="kpi-goal-header">
+          <span class="kpi-goal-year">ANNUAL TARGET ${fy}</span>
+        </div>
+        <div class="kpi-goal-grid">
+          <div class="kpi-goal-item"><div class="kpi-goal-label">DM目標</div><div class="kpi-goal-val">${goal.dm||'―'}<span class="kpi-goal-unit">件/年</span></div></div>
+          <div class="kpi-goal-item"><div class="kpi-goal-label">返信率目標</div><div class="kpi-goal-val">${goal.reply||'―'}<span class="kpi-goal-unit">%</span></div></div>
+          <div class="kpi-goal-item"><div class="kpi-goal-label">商談率目標</div><div class="kpi-goal-val">${goal.meeting||'―'}<span class="kpi-goal-unit">%</span></div></div>
+          <div class="kpi-goal-item"><div class="kpi-goal-label">成約CV目標</div><div class="kpi-goal-val">${goal.cv||'―'}<span class="kpi-goal-unit">%</span></div></div>
+          <div class="kpi-goal-item" style="grid-column:span 2"><div class="kpi-goal-label">売上目標</div><div class="kpi-goal-val">${goal.revenue||'―'}<span class="kpi-goal-unit">万円/年</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-section">
+      <div class="kpi-section-title">📊 年度累計進捗</div>
+      <div class="kpi-annual-summary">
+        <div class="kpi-summary-grid">
+          <div class="kpi-summary-item">
+            <div class="kpi-summary-label">DM数</div>
+            <div class="kpi-summary-row"><span class="kpi-summary-actual">${totDm}</span><span class="kpi-summary-target">/ ${goal.dm||'―'}</span>${pct(totDm,goal.dm)}</div>
+          </div>
+          <div class="kpi-summary-item">
+            <div class="kpi-summary-label">返信率</div>
+            <div class="kpi-summary-row"><span class="kpi-summary-actual">${replyRate}</span><span class="kpi-summary-target">% / ${goal.reply||'―'}%</span></div>
+          </div>
+          <div class="kpi-summary-item">
+            <div class="kpi-summary-label">商談率</div>
+            <div class="kpi-summary-row"><span class="kpi-summary-actual">${meetRate}</span><span class="kpi-summary-target">% / ${goal.meeting||'―'}%</span></div>
+          </div>
+          <div class="kpi-summary-item">
+            <div class="kpi-summary-label">成約CV率</div>
+            <div class="kpi-summary-row"><span class="kpi-summary-actual">${cvRate}</span><span class="kpi-summary-target">% / ${goal.cv||'―'}%</span></div>
+          </div>
+          <div class="kpi-summary-item" style="grid-column:span 2">
+            <div class="kpi-summary-label">売上</div>
+            <div class="kpi-summary-row"><span class="kpi-summary-actual">${totRevenue}</span><span class="kpi-summary-target">万 / ${goal.revenue||'―'}万</span>${pct(totRevenue,goal.revenue)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-section">
+      <div class="kpi-section-title">📅 月次実績</div>
+      ${monthRows}
+    </div>
+  `;
+
+  // 年度切り替えボタン
+  el.querySelectorAll('[data-fy-btn]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const d = loadKpiData();
+      d.activeFy = parseInt(btn.dataset.fyBtn);
+      saveKpiData(d);
+      renderKpi();
+    });
+  });
+
+  // 目標編集ボタン
+  el.querySelector('#open-kpi-goal').addEventListener('click', openKpiGoalSheet);
+
+  // DM入力（debounce保存）
+  let dmTimer = null;
+  el.querySelectorAll('.kpi-dm-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      clearTimeout(dmTimer);
+      dmTimer = setTimeout(()=>{
+        const d = loadKpiData();
+        d.dm = d.dm||{};
+        d.dm[inp.dataset.fy] = d.dm[inp.dataset.fy]||{};
+        d.dm[inp.dataset.fy][inp.dataset.mon] = parseInt(inp.value)||0;
+        saveKpiData(d);
+        renderKpi();
+      }, 600);
+    });
+  });
+}
+
+// KPI目標設定シート
+const kpiGoalSheetEl = document.getElementById('kpi-goal-sheet');
+document.getElementById('kpi-goal-close').addEventListener('click', closeSheet);
+
+function openKpiGoalSheet(){
+  const data = loadKpiData();
+  const curFy = new Date().getMonth()>=3 ? new Date().getFullYear() : new Date().getFullYear()-1;
+  const fy = data.activeFy || curFy;
+  const goal = (data.goals||{})[fy]||{};
+  // 年度セレクト
+  const sel = document.getElementById('kg-year');
+  sel.innerHTML = kpiYearOptions().map(y=>`<option value="${y}" ${y===fy?'selected':''}>${y}年度</option>`).join('');
+  document.getElementById('kg-dm').value = goal.dm||'';
+  document.getElementById('kg-reply').value = goal.reply||'';
+  document.getElementById('kg-meeting').value = goal.meeting||'';
+  document.getElementById('kg-cv').value = goal.cv||'';
+  document.getElementById('kg-revenue').value = goal.revenue||'';
+  openSheet(kpiGoalSheetEl);
+}
+
+document.getElementById('kg-save').addEventListener('click',()=>{
+  const fy = parseInt(document.getElementById('kg-year').value);
+  const d = loadKpiData();
+  d.goals = d.goals||{};
+  d.activeFy = fy;
+  d.goals[fy] = {
+    dm:      parseInt(document.getElementById('kg-dm').value)||0,
+    reply:   parseInt(document.getElementById('kg-reply').value)||0,
+    meeting: parseInt(document.getElementById('kg-meeting').value)||0,
+    cv:      parseInt(document.getElementById('kg-cv').value)||0,
+    revenue: parseInt(document.getElementById('kg-revenue').value)||0,
+  };
+  saveKpiData(d);
+  closeSheet();
+  setTimeout(renderKpi, 300);
+  showToast('目標を保存しました');
+});
+
+// ─── 月別受注データ構築 ────────────────────
+function buildMonthlyRevenue(){
+  const months = [];
+  const now = new Date();
+  for(let i=5; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push({
+      label: `${d.getMonth()+1}月`,
+      year:  d.getFullYear(),
+      month: d.getMonth(),
+      amount: 0,
+      count:  0,
+    });
+  }
+  projects.filter(p=>p.status==='won').forEach(p=>{
+    const d = new Date(p.updatedAt||p.createdAt||0);
+    const m = months.find(x=>x.year===d.getFullYear() && x.month===d.getMonth());
+    if(m){ m.amount += Number(p.amount)||0; m.count++; }
+  });
+  return months;
+}
+
+// ─── グラフ描画 ───────────────────────────
+function drawCharts(monthlyData){
+  // CSS変数をJS側で取得（Trip Memoカラートークン）
+  const style = getComputedStyle(document.documentElement);
+  const C = {
+    accent:  style.getPropertyValue('--accent').trim()      || '#2B4A3A',
+    mid:     style.getPropertyValue('--accent-mid').trim()  || '#3D6B55',
+    light:   style.getPropertyValue('--accent-light').trim()|| '#E8F2EC',
+    gold:    style.getPropertyValue('--gold').trim()        || '#C9A84C',
+    text:    style.getPropertyValue('--text').trim()        || '#1A1916',
+    text2:   style.getPropertyValue('--text-2').trim()      || '#5C574F',
+    text3:   style.getPropertyValue('--text-3').trim()      || '#9C9488',
+    border:  style.getPropertyValue('--border').trim()      || '#E2DDD5',
+  };
+
+  // 月別受注金額（折れ線グラフ）
+  drawLine('c-monthly',
+    monthlyData.map(m=>m.label),
+    monthlyData.map(m=>m.amount),
+    C
+  );
+
+  // ステータス別（固有色マッピング → カラートークン寄せ）
+  drawBar('c-status',
+    Object.entries(STATUS_MAP).map(([,v])=>v.label),
+    Object.keys(STATUS_MAP).map(k=>projects.filter(p=>p.status===k).length),
+    [C.accent, C.gold, C.mid, '#6A3CA0', C.mid, C.text3, C.border],
+    C
+  );
+
+  // 優先度別
+  drawBar('c-priority',
+    ['高','中','低'],
+    ['high','mid','low'].map(k=>projects.filter(p=>p.priority===k).length),
+    ['#9B3A2F', C.gold, C.mid],
+    C
+  );
+
+  // ソース別
+  const sourceMap = {};
+  projects.forEach(p=>{ if(p.source) sourceMap[p.source]=(sourceMap[p.source]||0)+1; });
+  const srcEntries = Object.entries(sourceMap).sort((a,b)=>b[1]-a[1]);
+  if(srcEntries.length){
+    drawBar('c-source',
+      srcEntries.map(e=>e[0]),
+      srcEntries.map(e=>e[1]),
+      [C.mid, C.gold, C.accent, '#6A3CA0', C.text2],
+      C
+    );
+  } else {
+    drawEmpty('c-source', C);
+  }
+}
+
+// ─── 折れ線グラフ ─────────────────────────
+function drawLine(canvasId, labels, data, C){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth||300;
+  const H = parseInt(canvas.getAttribute('height'))||180;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const padL=36, padR=12, padT=16, padB=28;
+  const cW = W-padL-padR;
+  const cH = H-padT-padB;
+  const max = Math.max(...data, 1);
+  const step = cW/(labels.length-1||1);
+
+  // gridと目盛
+  ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y = padT+cH*(1-i/4);
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+    ctx.fillStyle=C.text3; ctx.font=`10px -apple-system,sans-serif`; ctx.textAlign='right';
+    ctx.fillText(Math.round(max*i/4), padL-4, y+3);
+  }
+
+  // 塗りつぶしエリア
+  const pts = data.map((v,i)=>({x:padL+step*i, y:padT+cH*(1-v/max)}));
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H-padB);
+  pts.forEach(p=>ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length-1].x, H-padB);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0,padT,0,H-padB);
+  grad.addColorStop(0, C.mid+'55');
+  grad.addColorStop(1, C.mid+'08');
+  ctx.fillStyle=grad; ctx.fill();
+
+  // 線
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle=C.mid; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+
+  // ドットと値
+  pts.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    ctx.fillStyle=data[i]>0?C.mid:C.border; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    if(data[i]>0){
+      ctx.fillStyle=C.text; ctx.font=`700 11px -apple-system,sans-serif`; ctx.textAlign='center';
+      ctx.fillText(data[i]+'万', p.x, p.y-10);
+    }
+    ctx.fillStyle=C.text3; ctx.font=`11px -apple-system,sans-serif`;
+    ctx.fillText(labels[i], p.x, H-padB+16);
+  });
+}
+
+// ─── 棒グラフ ─────────────────────────────
+function drawBar(canvasId, labels, data, colors, C){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth||300;
+  const H = parseInt(canvas.getAttribute('height'))||180;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const padL=8, padR=8, padT=16, padB=32;
+  const cW = W-padL-padR;
+  const max = Math.max(...data,1);
+  const barGap = cW/labels.length;
+  const barW   = barGap*0.58;
+
+  // grid
+  ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  for(let i=1;i<=4;i++){
+    const y = padT+(H-padT-padB)*(1-i/4);
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+  }
+
+  data.forEach((v,i)=>{
+    const bh = (H-padT-padB)*(v/max);
+    const x  = padL+barGap*i+barGap/2-barW/2;
+    const y  = H-padB-bh;
+    ctx.fillStyle = v>0 ? colors[i%colors.length] : C.border;
+    roundRect(ctx,x,y,barW,Math.max(bh,2),4); ctx.fill();
+    if(v>0){
+      ctx.fillStyle=C.text; ctx.font=`700 12px -apple-system,sans-serif`; ctx.textAlign='center';
+      ctx.fillText(v, x+barW/2, y-4);
+    }
+    ctx.fillStyle=C.text3; ctx.font=`11px -apple-system,sans-serif`;
+    const lbl=labels[i].length>5?labels[i].slice(0,5)+'…':labels[i];
+    ctx.fillText(lbl, x+barW/2, H-padB+16);
+  });
+}
+
+function drawEmpty(canvasId, C){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||300;
+  const H=parseInt(canvas.getAttribute('height'))||170;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle=C.text3; ctx.font=`13px -apple-system,sans-serif`; ctx.textAlign='center';
+  ctx.fillText('データなし', W/2, H/2+4);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  if(h<r) r=h; if(w<r*2) r=w/2;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h); ctx.lineTo(x,y+h);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ─── ユーティリティ ───────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── 初期表示 ─────────────────────────────────
+// 全ビューを確実に初期化
+[dashEl, portfolioEl, kpiEl, knowledgeEl].forEach(el => { el.style.display = 'none'; });
+mainEl.style.display = '';
+renderList();
+
+})();
+</script>
+</body>
+</html>
